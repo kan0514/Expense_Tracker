@@ -6,6 +6,7 @@ import { authenticate } from "../middleware/auth.middleware"; // Assuming path
 import { loginRateLimiter } from "../middleware/rateLimit.middleware"; // Assuming path
 import { validate } from "../middleware/validation.middleware"; // Assuming path
 import Joi from "joi"; // NOTE: Joi must be installed (npm install joi)
+import { supabase } from '../utils/supabaseClient'
 
 const router = Router();
 
@@ -22,6 +23,11 @@ const loginSchema = Joi.object({
   password: Joi.string().required(),
 });
 // -------------------------------------
+router.get('/test', async (req, res) => {
+  const { data, error } = await supabase.from('users').select('*')
+  if (error) return res.status(500).json({ error: error.message })
+  res.json({ users: data })
+})
 
 router.post("/register", validate(registerSchema), register);
 router.post("/login", loginRateLimiter, validate(loginSchema), login);

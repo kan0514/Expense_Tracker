@@ -1,60 +1,71 @@
-// file: prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id           String        @id @default(uuid()) // Using uuid() as per original plan
+  id           String        @id @default(uuid())
   email        String        @unique
   password     String
   name         String
   profileUrl   String?
   createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt // Added missing updatedAt field
-  
-  // FIX: Added the reciprocal field for the AuthSession model
+  updatedAt    DateTime      @updatedAt
   sessions     AuthSession[]
+  budgets      Budget[]
+  Category     Category[]
   transactions Transaction[]
 }
 
 model AuthSession {
-  id          String    @id @default(uuid())
-  userId      String
-  jwtId       String    @unique
-  expiresAt   DateTime
-  createdAt   DateTime  @default(now())
-  
-  // No need for a custom name here if no other relation exists between User and AuthSession
-  user        User      @relation(fields: [userId], references: [id])
+  id        String   @id @default(uuid())
+  userId    String
+  jwtId     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
-
-// Restoring the Category and fixing the Transaction model for proper relations
 model Category {
   id           String        @id @default(uuid())
-  name         String        @unique
-  icon         String?       
+  name         String
+  icon         String?
+  userId       String?
+  user         User?         @relation(fields: [userId], references: [id])
   transactions Transaction[]
+
+  @@unique([userId, name])
 }
 
 model Transaction {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   userId      String
-  categoryId  String    // Added to link to Category model
+  categoryId  String
   amount      Float
-  type        String    // e.g., 'INCOME', 'EXPENSE'
-  description String?   // Using 'description' instead of 'note' for clarity
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  type        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id])
 
-  user        User      @relation(fields: [userId], references: [id])
-  category    Category  @relation(fields: [categoryId], references: [id])
-  
   @@index([userId, categoryId])
+}
+
+model Budget {
+  id        String   @id @default(cuid())
+  userId    String
+  month     Int
+  year      Int
+  amount    Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, month, year])
 }

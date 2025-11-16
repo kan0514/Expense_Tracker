@@ -5,6 +5,10 @@ import dotenv from 'dotenv';
 import cors from 'cors'; // Recommended for frontend-backend separation
 import authRoutes from './routes/auth.routes';
 import dashboardRoutes from './routes/dashboard.routes';
+import categoryRoutes from "./routes/category.routes";
+import transactionRoutes from "./routes/transaction.routes";
+import budgetRoutes from "./routes/budget.routes";
+
 
 // 1. Configuration & Environment Setup
 dotenv.config();
@@ -22,9 +26,7 @@ app.use(cors({
 }));
 
 // Basic Health Check Route
-app.get('/', (req: Request, res: Response) => {
-    res.send('Server is running!');
-});
+app.get('/', (_, res) => res.send('Server is running!'))
 
 // 4. Routes
 // Mount the authentication routes
@@ -32,6 +34,10 @@ app.use('/api/v1/auth', authRoutes);
 
 // Mount the protected dashboard routes
 app.use('/api/v1', dashboardRoutes);
+
+app.use("/api/v1/categories", categoryRoutes);
+app.use("/api/v1/transactions", transactionRoutes);
+app.use("/api/v1/budgets", budgetRoutes);
 
 
 // 5. Server Start

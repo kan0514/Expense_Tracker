@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import { signToken } from "../utils/jwt";
 import  redis  from "../utils/redisClient";
 import dotenv from "dotenv";
+
 dotenv.config();
 
 const SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS) || 12;

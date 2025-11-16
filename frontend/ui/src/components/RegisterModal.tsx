@@ -1,74 +1,60 @@
 "use client";
-
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import api from "@/lib/api";
 import { useState } from "react";
-
-const registerSchema = z.object({
-  name: z.string().min(2, "Name is required"),
-  email: z.string().email("Invalid email"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Must contain one uppercase letter")
-    .regex(/[a-z]/, "Must contain one lowercase letter")
-    .regex(/[0-9]/, "Must contain one number")
-    .regex(/[^A-Za-z0-9]/, "Must contain one special character"),
-});
-
-type RegisterForm = z.infer<typeof registerSchema>;
+import api from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function RegisterModal({ onRegister }: { onRegister: () => void }) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterForm>({
-    resolver: zodResolver(registerSchema),
-  });
-
-  const onSubmit = async (data: RegisterForm) => {
+  const handleRegister = async () => {
     try {
-      setError("");
-      setLoading(true);
-      await api.post("/auth/register", data);
-      onRegister(); // Close modal or redirect
+      const res = await api.post("/auth/register", { name, email, password });
+      if (res.data) onRegister();
+      router.push("/login");
     } catch (err: any) {
       setError(err.response?.data?.message || "Registration failed");
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 w-[380px] shadow-lg">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold">Create Account</h1>
-        </div>
+    <div className="w-full max-w-md bg-white p-8 rounded shadow">
+      <h2 className="text-2xl font-bold mb-4">Create Account</h2>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <input {...register("name")} placeholder="Name" className="w-full p-2 border rounded-md" />
-          {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+      {error && <div className="text-red-500 mb-3">{error}</div>}
 
-          <input {...register("email")} placeholder="Email" className="w-full p-2 border rounded-md" />
-          {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+      <input
+        className="w-full p-2 border rounded mb-3"
+        placeholder="Full Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
 
-          <input {...register("password")} placeholder="Password" type="password" className="w-full p-2 border rounded-md" />
-          {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+      <input
+        className="w-full p-2 border rounded mb-3"
+        placeholder="Email Address"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
 
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+      <input
+        className="w-full p-2 border rounded mb-4"
+        placeholder="Password"
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
 
-          <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">
-            {loading ? "Registering..." : "Register"}
-          </button>
-        </form>
-      </div>
+      <button
+        onClick={handleRegister}
+        className="w-full bg-blue-600 text-white py-2 rounded"
+      >
+        Register
+      </button>
     </div>
   );
 }

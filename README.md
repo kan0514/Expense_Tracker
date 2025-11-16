@@ -1,14 +1,79 @@
-📊 Personal Finance Dashboard: Full Stack ProjectThis is a complete full-stack application for tracking personal finance, featuring secure user authentication, category-based transaction management, and a dashboard for data visualization.🚀 OverviewThis project is split into two main parts: a secure Backend built with Node.js/Express and Prisma, and a dynamic Frontend built with Next.js and Tailwind CSS.Key FeaturesSecure Authentication: User registration and login using JWTs.Transaction Management: Data seeded manually for various categories (Groceries, Rent, Salary, etc.).Data Visualization: Dashboard displays a Bar Chart showing the running balance over the last 10 transactions.Real-time Data: Integrated with a dashboard API for authenticated data fetching.💻 Tech StackComponentTechnologyDescriptionFrontend (UI)Next.js, TypeScript, Tailwind CSSApplication framework, type safety, and fast styling.ChartingRechartsUsed for the dynamic transaction bar chart.BackendNode.js, ExpressAPI server and business logic.DatabasePostgreSQLPrimary persistent data storage.ORMPrismaDatabase toolkit for efficient schema management and querying.CacheRedis (Upstack Cache)External free cache service for performance optimization (e.g., caching dashboard data).AuthenticationJWT (JSON Web Tokens)Secure API access control.⚙️ Backend Setup and API EndpointsPrerequisitesNode.jsPostgreSQL running locally (or via Docker)Access to a Redis instance (e.g., Upstack Online Cache connection string).SetupConfigure Environment: Create a .env file in the backend root directory with the following variables:DATABASE_URL="postgresql://user:password@localhost:5432/finance_db"
-JWT_SECRET="YOUR_STRONG_SECRET"
-REDIS_URL="redis://<your-upstack-url>:<port>" 
-Install Dependencies:Bashnpm install
-Database Migration & Seeding:Reset (Required): To start fresh and ensure category correctness:Bashnpx prisma migrate reset
-Seed Data: Run the seed scripts in the correct order:Bashnpx ts-node prisma/seedCategories.ts
-# Ensure a user is created here if needed
-npx ts-node prisma/seedTransactions.ts
-Run the Backend:Bashnpm run dev
-Key API EndpointsEndpointMethodAuthenticationDescription/auth/registerPOSTNoneCreates a new user account./auth/loginPOSTNoneAuthenticates user and returns a JWT./dashboardGETBearer TokenFetches summarized data, recent transactions (last 10), and spend statistics.🖥️ Frontend Setup and StructureThe frontend code resides in the ui directory.SetupNavigate to the Frontend:Bashcd ui
-npm install
-Configure API URL: Create a .env.local file in the ui directory:NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
-Run the Frontend:Bashnpm run dev
-Frontend StructurePathPurposeui/app/layout.tsxMain application layout, global state (user, dashboard), and authentication checks.ui/app/dashboard/page.tsxMain visualization area, fetching data via axios.ui/app/login/page.tsxInitial login page/modal.ui/components/Sidebar.tsxNavigation and user info (authenticated view).ui/components/SpendChart.tsxBar chart component visualizing the running balance.Dashboard Chart LogicThe SpendChart.tsx component calculates the running balance across the last 10 chronologically sorted transactions, displaying the cumulative financial trend using a Bar Chart.Data Key: The chart uses a calculated balance key, not the raw amount.Sorting: Transactions are explicitly sorted by createdAt date (oldest first) in the component's useMemo hook to ensure correct cumulative calculation.
+# 💰 Personal Finance Dashboard
+
+A comprehensive web application designed to help users effectively manage their personal finances, track spending, set budgets, and gain visual insights into their financial health.
+
+## ✨ Features
+
+The Personal Finance Dashboard provides a rich set of features for streamlined financial management:
+
+### Dashboard Overview
+* **Total Financial Snapshot:** Display of total available balance and the overall count of recorded transactions.
+* **Monthly Performance:** Calculation of the total spend for the current calendar month.
+* **Budget Tracking:** Real-time comparison of the current month's spending against the set monthly budget, including percentage usage.
+* **Visual Insights:** An intuitive chart powered by D3.js providing a visual overview of spending patterns.
+
+### Transaction Management
+* **Recent Activity:** View a list of the most recent transactions.
+* **Filtering (Planned):** Future capability to filter transactions by category, date range, and amount.
+
+### Budget Management
+* **Goal Setting:** Ability to set and view monthly budget goals.
+* **Usage Tracking:** Clear visualization of the percentage of the budget utilized.
+
+### Technology & Design
+* **Data Visualization:** Custom, insightful charts implemented using **D3.js**.
+* **Responsive UI:** A simple, clean, and modern user interface built with **React** and **Tailwind CSS**, ensuring an optimal experience on both **mobile and desktop** devices.
+
+---
+
+## 🛠️ Tech Stack
+
+| Component | Technology | Description |
+| :--- | :--- | :--- |
+| **Frontend** | React, TypeScript, Tailwind CSS | Modern, component-based UI framework for a robust and scalable client. |
+| **Charts** | D3.js | Powerful library for producing dynamic and interactive data visualizations. |
+| **Backend** | Node.js, Express | Fast, scalable server-side environment and a robust web framework. |
+| **Database** | PostgreSQL, Prisma ORM | Enterprise-grade relational database and a modern database toolkit for type-safe data access. |
+| **Authentication** | JWT (JSON Web Tokens) | Secure, stateless authentication for API access. |
+
+---
+
+## 🚀 API Endpoints
+
+The backend is structured around the following key API endpoints:
+
+### Transactions
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/transactions/summary` | Retrieves the overall total balance and transaction count. |
+| `GET` | `/transactions` | Retrieves a paginated list of all transactions. |
+
+**Example Response: `/transactions/summary`**
+```json
+{
+  "totalBalance": 150000.50,
+  "transactionCount": 125
+}
+Example Query & Response: /transactions?page=1&perPage=5JSON{
+  "meta": {
+    "total": 125,
+    "page": 1,
+    "perPage": 5,
+    "totalPages": 25
+  },
+  "data": [
+    // ... transaction objects
+  ]
+}
+BudgetsMethodEndpointDescriptionGET/budgetsRetrieves a budget for a specified month/year (?month=<number>&year=<number>).POST/budgetsCreates a new monthly budget.Example Request Body: POST /budgetsJSON{
+  "month": 11,
+  "year": 2025,
+  "amount": 50000
+}
+⚙️ Setup and InstallationFollow these steps to get the application running on your local machine.1. Clone the RepositoryBashgit clone <repo-url>
+cd personal-finance-dashboard
+2. Install DependenciesInstall packages for both the frontend (Next.js) and the backend.Bashnpm install
+3. Environment ConfigurationCreate a .env file in the project root based on a provided template (if available) and configure your:Database Credentials (for PostgreSQL)JWT Secret Key (for authentication)4. Run Database MigrationsApply the Prisma schema to your PostgreSQL database.Bashnpx prisma migrate dev
+5. Start the ServersRun the backend API and the frontend Next.js server concurrently.Start Backend Server (Node.js/Express):Bashnpm run dev
+Start Frontend Server (Next.js/React):Bashnpm run dev
+The application will typically be accessible at http://localhost:3000.📝 NotesCurrency: All financial amounts within the application are denominated in ₹ (Indian Rupees - INR).Monthly Spend: The calculated monthly spend strictly accounts for expenses incurred within the current calendar month.
