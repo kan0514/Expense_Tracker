@@ -10,7 +10,8 @@
     "prisma:migrate": "prisma migrate dev --name init",
     "prisma:generate": "prisma generate",
     "seed": "ts-node prisma/seed.ts",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "build": "tsc"
   },
   "dependencies": {
     "@prisma/client": "^5.0.0",
