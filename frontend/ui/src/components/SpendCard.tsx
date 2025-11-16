@@ -70,7 +70,7 @@ const SpendChart: React.FC<Props> = ({ data, width = 600, height = 300 }) => {
     // X Axis
     g.append("g")
       .attr("transform", `translate(0,${innerHeight})`)
-      .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%d %b")));
+      .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%d %b") as any));
 
     // Y Axis
     g.append("g").call(d3.axisLeft(y));
