@@ -2,7 +2,7 @@
 
 import { Router } from "express";
 import { register, login, logout } from "../controllers/auth.controller";
-import { authenticate } from "../middleware/auth.middleware"; // Assuming path
+import { authMiddleware } from "../middleware/auth.middleware"; // Assuming path
 import { loginRateLimiter } from "../middleware/rateLimit.middleware"; // Assuming path
 import { validate } from "../middleware/validation.middleware"; // Assuming path
 import Joi from "joi"; // NOTE: Joi must be installed (npm install joi)
@@ -31,6 +31,6 @@ router.get('/test', async (req, res) => {
 
 router.post("/register", validate(registerSchema), register);
 router.post("/login", loginRateLimiter, validate(loginSchema), login);
-router.post("/logout", authenticate, logout); // Logout requires a valid token
+router.post("/logout", authMiddleware, logout); // Logout requires a valid token
 
 export default router;

@@ -1,13 +1,13 @@
 // file: src/routes/budget.routes.ts
 
 import { Router } from "express";
-import { authenticate } from "../middleware/auth.middleware";
+import { authMiddleware } from "../middleware/auth.middleware";
 import { getBudget,setBudget } from "../controllers/budget.controller";
 
 const router = Router();
 
-router.get("/", authenticate, getBudget);
-router.post("/", authenticate, setBudget);
+router.get("/", authMiddleware, getBudget);
+router.post("/", authMiddleware, setBudget);
 
 
 export default router;

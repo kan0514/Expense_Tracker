@@ -3,13 +3,21 @@ import { Request, Response } from "express";
 import { prisma } from "../utils/prisma";
 
 export const createCategory = async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId;
+  const userId = (req as any).user?.userId as string | undefined;
   // categories are global or user-specific? I'll make them global for reuse
   try {
     const { name, icon } = req.body;
+    if (!userId) {
+             return res.status(401).json({ message: "User not authenticated." });
+        }
     if (!name) return res.status(400).json({ message: "name required" });
 
-    const existing = await prisma.category.findUnique({ where: { name } });
+    const existing = await prisma.category.findFirst({
+            where: {
+                userId: userId, 
+                name: name
+            } 
+        });
     if (existing) return res.status(409).json({ message: "Category exists" });
 
     const category = await prisma.category.create({ data: { name, icon } });

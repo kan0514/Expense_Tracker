@@ -36,19 +36,27 @@ export const login = async (req: Request, res: Response) => {
     if (!match) return res.status(401).json({ message: "Invalid credentials" });
 
     const token = signToken({ userId: user.id, email: user.email, name: user.name });
+    const tokenParts = token.split('.');
+    if (tokenParts.length !== 3) {
+      // This should ideally not happen if signToken is correct, but added for safety
+      return res.status(500).json({ message: "Internal token generation error" });
+    }
+    const decodedPayload = Buffer.from(tokenParts[1], 'base64').toString();
+    const decoded: { jti?: string } = JSON.parse(decodedPayload);
     // store session in Redis with expiry similar to JWT expiry (parse expiry TTL)
     // For demo: set TTL = 1 hour (3600 sec) or derive from JWT_EXPIRY
-    await redis.set(`session:${user.id}`, token, "EX", 3600);
+    await redis.set(`session:${user.id}`, token, { EX: 3600 });
     // store auth session in DB (optional)
-    const decoded: any = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
     const jti = decoded.jti;
-    await prisma.authSession.create({
-      data: {
-        userId: user.id,
-        jwtId: jti,
-        expiresAt: new Date(Date.now() + 3600 * 1000)
-      }
-    });
+    if (jti) {
+      await prisma.authSession.create({
+        data: {
+          userId: user.id,
+          jwtId: jti,
+          expiresAt: new Date(Date.now() + 3600 * 1000)
+        }
+      });
+    }
 
     return res.json({ token, user: { id: user.id, email: user.email, name: user.name, profileUrl: user.profileUrl } });
   } catch (err) {
@@ -69,7 +77,7 @@ export const logout = async (req: Request, res: Response) => {
     const jti = decoded.jti;
     // blacklist token in Redis with expiry (token TTL)
     const ttl = 3600; // seconds; ideally parse from token exp - iat
-    await redis.set(`jwt:blacklist:${jti}`, "1", "EX", ttl);
+    await redis.set(`jwt:blacklist:${jti}`, "1", { EX: ttl });
 
     // remove session entry
     const userId = decoded.userId;
